@@ -42,7 +42,6 @@ html[data-theme="light"] {
   padding: 0;
 }
 html {
-  scroll-behavior: smooth;
   scroll-padding-top: 90px;
 }
 body {

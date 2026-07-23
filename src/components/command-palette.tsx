@@ -22,9 +22,11 @@ export function CommandPalette({
       label: `Go to ${item.label}`,
       icon: Search,
       run: () =>
-        document
-          .querySelector(item.href)
-          ?.scrollIntoView({ behavior: "smooth" }),
+        window.dispatchEvent(
+          new CustomEvent("portfolio:navigate-hash", {
+            detail: { hash: item.href },
+          }),
+        ),
     })),
     {
       label: "Download résumé",

@@ -37,10 +37,20 @@
       themeButton.onclick = toggleTheme;
       if (mobileThemeButton) mobileThemeButton.onclick = toggleTheme;
       syncThemeControls();
-      window.addEventListener("scroll", () => {
+      let progressFrame = 0;
+      const updateProgress = () => {
+        progressFrame = 0;
         const h = document.documentElement.scrollHeight - innerHeight;
-        $("#progress").style.width = (scrollY / h) * 100 + "%";
-      });
+        $("#progress").style.width = (h > 0 ? scrollY / h : 0) * 100 + "%";
+      };
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (!progressFrame)
+            progressFrame = requestAnimationFrame(updateProgress);
+        },
+        { passive: true },
+      );
       const reveal = new IntersectionObserver(
         (es) =>
           es.forEach((e) => {
@@ -79,21 +89,35 @@
       let mx = innerWidth / 2,
         my = innerHeight / 2,
         cx = mx,
-        cy = my;
-      addEventListener("mousemove", (e) => {
-        mx = e.clientX;
-        my = e.clientY;
-        spot.style.left = mx + "px";
-        spot.style.top = my + "px";
-        dot.style.transform = `translate(${mx - 2.5}px,${my - 2.5}px)`;
-      });
+        cy = my,
+        cursorFrame = 0;
+      addEventListener(
+        "mousemove",
+        (e) => {
+          mx = e.clientX;
+          my = e.clientY;
+          spot.style.left = mx + "px";
+          spot.style.top = my + "px";
+          dot.style.transform = `translate(${mx - 2.5}px,${my - 2.5}px)`;
+          if (!cursorFrame && !document.hidden)
+            cursorFrame = requestAnimationFrame(cursorLoop);
+        },
+        { passive: true },
+      );
       function cursorLoop() {
         cx += (mx - cx) * 0.14;
         cy += (my - cy) * 0.14;
         cur.style.transform = `translate(${cx - 17}px,${cy - 17}px)`;
-        requestAnimationFrame(cursorLoop);
+        if (Math.abs(mx - cx) > 0.1 || Math.abs(my - cy) > 0.1)
+          cursorFrame = requestAnimationFrame(cursorLoop);
+        else cursorFrame = 0;
       }
-      cursorLoop();
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && cursorFrame) {
+          cancelAnimationFrame(cursorFrame);
+          cursorFrame = 0;
+        }
+      });
       $$("a,button,.project,.node").forEach((e) => {
         e.onmouseenter = () => cur.classList.add("active");
         e.onmouseleave = () => cur.classList.remove("active");
@@ -190,8 +214,11 @@
           (c.onclick = () => {
             if (c.dataset.action === "theme") toggleTheme();
             if (c.dataset.go) {
-              location.hash = c.dataset.go;
-              $(c.dataset.go).scrollIntoView({ behavior: "smooth" });
+              dispatchEvent(
+                new CustomEvent("portfolio:navigate-hash", {
+                  detail: { hash: c.dataset.go },
+                }),
+              );
             }
             closePal();
           }),
@@ -246,6 +273,7 @@
             }),
           );
         }
+        let starsFrame = 0;
         function draw() {
           ctx.clearRect(0, 0, innerWidth, innerHeight);
           ctx.fillStyle = getComputedStyle(root).getPropertyValue("--dim");
@@ -257,11 +285,19 @@
             ctx.arc(p.x, p.y, p.r, 0, 7);
             ctx.fill();
           });
-          requestAnimationFrame(draw);
+          starsFrame = requestAnimationFrame(draw);
         }
         addEventListener("resize", resize);
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden && starsFrame) {
+            cancelAnimationFrame(starsFrame);
+            starsFrame = 0;
+          } else if (!document.hidden && !starsFrame) {
+            starsFrame = requestAnimationFrame(draw);
+          }
+        });
         resize();
-        draw();
+        starsFrame = requestAnimationFrame(draw);
       }
 
       // Testimonial carousel

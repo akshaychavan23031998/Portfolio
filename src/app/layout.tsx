@@ -3,6 +3,7 @@ import { Geist, JetBrains_Mono, Manrope } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { GlobalChrome } from "@/components/layout/global-chrome";
 import { siteConfig } from "@/config/site";
+import "locomotive-scroll/locomotive-scroll.css";
 import "./reference.css";
 
 const geist = Geist({

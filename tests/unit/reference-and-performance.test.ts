@@ -9,11 +9,25 @@ test("the protected reference HTML remains at the repository root", () => {
   ).toBe(true);
 });
 
-test("native scrolling is the only scroll engine", () => {
+test("Locomotive Scroll is the only artificial scroll engine", () => {
   const providers = readFileSync("src/components/providers.tsx", "utf8");
+  const smoothScroll = readFileSync(
+    "src/components/smooth-scroll-provider.tsx",
+    "utf8",
+  );
   const packageJson = readFileSync("package.json", "utf8");
-  expect(providers).not.toMatch(/Lenis|requestAnimationFrame/);
-  expect(packageJson).not.toMatch(/@studio-freight\/lenis/);
+  const css = [
+    readFileSync("src/app/globals.css", "utf8"),
+    readFileSync("src/app/reference.css", "utf8"),
+  ].join("\n");
+  expect(providers.match(/<SmoothScrollProvider>/g)).toHaveLength(1);
+  expect(smoothScroll.match(/new LocomotiveScrollConstructor/g)).toHaveLength(
+    1,
+  );
+  expect(smoothScroll).toContain(".destroy()");
+  expect(packageJson).toContain('"locomotive-scroll"');
+  expect(packageJson).not.toMatch(/"lenis"/);
+  expect(css).not.toMatch(/scroll-behavior:\s*smooth/);
 });
 
 test("cross-browser hidden scrollbar rules are present", () => {

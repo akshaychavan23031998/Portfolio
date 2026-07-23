@@ -59,6 +59,48 @@ test("homepage preserves the reference structure and interactions", async ({
   expect(errors).toEqual([]);
 });
 
+test("one scroll engine preserves anchors, history, and fallbacks", async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-scroll-engine",
+    isMobile ? "native" : "locomotive",
+  );
+
+  if (isMobile) await page.locator("#menuBtn").click();
+  await page.locator('a[href="#experience"]').first().click();
+  await expect(page).toHaveURL(/#experience$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
+  const experienceScroll = await page.evaluate(() => scrollY);
+
+  if (isMobile) await page.locator("#menuBtn").click();
+  await page.locator('a[href="#projects"]').first().click();
+  await expect(page).toHaveURL(/#projects$/);
+  const projectsScroll = await page.evaluate(() => scrollY);
+  expect(projectsScroll).toBeGreaterThan(experienceScroll);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/#experience$/);
+  await expect
+    .poll(() => page.evaluate(() => scrollY))
+    .toBeLessThan(projectsScroll);
+
+  await page.goForward();
+  await expect(page).toHaveURL(/#projects$/);
+  await expect
+    .poll(() => page.evaluate(() => scrollY))
+    .toBeGreaterThan(experienceScroll);
+
+  await expect(page.locator("#conversationForm input").first()).toBeEditable();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - innerWidth,
+    ),
+  ).toBeLessThanOrEqual(1);
+});
+
 test("mobile navigation follows the reference behavior", async ({
   page,
   isMobile,
@@ -430,6 +472,7 @@ test("profile, actions, skills, domains, and full-width project media are correc
   await expect(hire).toHaveAttribute("href", "#contact");
   if (isMobile) {
     await page.locator("#menuBtn").click();
+    await expect(hire).toBeVisible();
     await hire.focus();
     await expect(hire).toBeFocused();
     await hire.click();
