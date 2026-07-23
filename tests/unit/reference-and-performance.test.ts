@@ -1,0 +1,68 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+test("the protected reference HTML remains at the repository root", () => {
+  expect(
+    existsSync(
+      resolve("akshay-engineering-portfolio-final-responsive-fixed.html"),
+    ),
+  ).toBe(true);
+});
+
+test("native scrolling is the only scroll engine", () => {
+  const providers = readFileSync("src/components/providers.tsx", "utf8");
+  const packageJson = readFileSync("package.json", "utf8");
+  expect(providers).not.toMatch(/Lenis|requestAnimationFrame/);
+  expect(packageJson).not.toMatch(/@studio-freight\/lenis/);
+});
+
+test("cross-browser hidden scrollbar rules are present", () => {
+  const css = readFileSync("src/app/globals.css", "utf8");
+  expect(css).toContain("scrollbar-width: none");
+  expect(css).toContain("html::-webkit-scrollbar");
+});
+
+test("the old square-grid background is removed and reduced motion stops decoration", () => {
+  const css = readFileSync("src/app/globals.css", "utf8");
+  expect(css).not.toContain("48px 48px");
+  expect(css).toContain(".global-signal");
+  expect(css).toContain(".cursor-spotlight");
+  expect(css).toMatch(/prefers-reduced-motion[\s\S]*\.global-signal/);
+});
+
+test("local assets and résumé configuration are centralized", () => {
+  const projects = readFileSync("src/data/projects.ts", "utf8");
+  const testimonials = readFileSync("src/data/testimonials.ts", "utf8");
+  const site = readFileSync("src/config/site.ts", "utf8");
+  const sourceFiles = [
+    projects,
+    testimonials,
+    site,
+    readFileSync("src/app/page.tsx", "utf8"),
+    readFileSync("src/components/command-palette.tsx", "utf8"),
+  ].join("\n");
+
+  expect(projects.match(/\/images\/projects\//g)).toHaveLength(9);
+  expect(testimonials.match(/\/images\/testimonials\//g)).toHaveLength(4);
+  expect(site).toContain('resume: "/resume/akshay-ram-chavan-resume.pdf"');
+  expect(site).toContain('resumeDownloadName: "Akshay-Ram-Chavan-Resume.pdf"');
+  expect(sourceFiles).not.toMatch(/drive\.google|drive\.usercontent/);
+});
+
+test("requested skills, domains, and email actions are centralized", () => {
+  const skills = readFileSync("src/data/skills.ts", "utf8");
+  const experience = readFileSync("src/data/experience.ts", "utf8");
+  const site = readFileSync("src/config/site.ts", "utf8");
+
+  expect(skills.match(/"Go"/g)).toHaveLength(1);
+  expect(skills.match(/"gRPC"/g)).toHaveLength(1);
+  expect(skills.match(/"Kubernetes"/g)).toHaveLength(1);
+  expect(experience).toContain('tag: "AI CRM"');
+  expect(experience).toContain('tag: "Banking"');
+  expect(experience).toContain('tag: "E-Comm"');
+  expect(experience).not.toMatch(/Banking Domain|E-Commerce Domain/);
+  expect(site).toContain('emailMailto: "mailto:akshayrchavan07@gmail.com"');
+  expect(site).toContain(
+    '"https://mail.google.com/mail/?view=cm&fs=1&to=akshayrchavan07@gmail.com"',
+  );
+});
