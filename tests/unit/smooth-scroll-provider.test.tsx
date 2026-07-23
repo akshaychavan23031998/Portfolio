@@ -124,7 +124,7 @@ describe("SmoothScrollProvider", () => {
     target.remove();
   });
 
-  it("shows the scrollbar while scrolling and resets one hide timer", () => {
+  it("does not add scrollbar state, listeners, or timers", () => {
     vi.useFakeTimers();
     mockMedia({ finePointer: false, reducedMotion: false });
     const { unmount } = render(
@@ -134,19 +134,11 @@ describe("SmoothScrollProvider", () => {
     );
 
     fireEvent.scroll(window);
-    expect(document.documentElement).toHaveClass("scrollbar-visible");
-
-    act(() => vi.advanceTimersByTime(500));
-    fireEvent.scroll(window);
-    act(() => vi.advanceTimersByTime(500));
-    expect(document.documentElement).toHaveClass("scrollbar-visible");
-
-    act(() => vi.advanceTimersByTime(251));
     expect(document.documentElement).not.toHaveClass("scrollbar-visible");
+    expect(document.body).not.toHaveClass("scrollbar-visible");
+    expect(vi.getTimerCount()).toBe(0);
 
-    fireEvent.scroll(window);
     unmount();
-    expect(document.documentElement).not.toHaveClass("scrollbar-visible");
     expect(vi.getTimerCount()).toBe(0);
     fireEvent.scroll(window);
     expect(document.documentElement).not.toHaveClass("scrollbar-visible");

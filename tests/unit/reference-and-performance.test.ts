@@ -31,11 +31,21 @@ test("Locomotive Scroll is the only artificial scroll engine", () => {
 });
 
 test("cross-browser hidden scrollbar rules are present", () => {
-  const css = readFileSync("src/app/reference.css", "utf8");
-  expect(css).toContain("scrollbar-color: transparent transparent");
-  expect(css).toContain("html.scrollbar-visible");
-  expect(css).toContain("background-color: transparent");
-  expect(css).toContain("background-color: var(--line)");
+  const css = [
+    readFileSync("src/app/globals.css", "utf8"),
+    readFileSync("src/app/reference.css", "utf8"),
+  ].join("\n");
+  const provider = readFileSync(
+    "src/components/smooth-scroll-provider.tsx",
+    "utf8",
+  );
+  expect(css).toContain("scrollbar-width: none");
+  expect(css).toContain("-ms-overflow-style: none");
+  expect(css).toContain("html::-webkit-scrollbar");
+  expect(css).toContain("body::-webkit-scrollbar");
+  expect(css).not.toContain("*::-webkit-scrollbar");
+  expect(provider).not.toMatch(/scrollbar-visible|setTimeout/);
+  expect(provider).not.toMatch(/addEventListener\(["']scroll["']/);
 });
 
 test("the old square-grid background is removed and reduced motion stops decoration", () => {

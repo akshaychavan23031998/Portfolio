@@ -101,19 +101,28 @@ test("one scroll engine preserves anchors, history, and fallbacks", async ({
   ).toBeLessThanOrEqual(1);
 });
 
-test("desktop scrollbar thumb is active only during scrolling", async ({
+test("main scrollbar stays hidden without blocking scrolling", async ({
   page,
-  isMobile,
 }) => {
-  test.skip(isMobile);
   await page.goto("/");
-  await expect(page.locator("html")).not.toHaveClass(/scrollbar-visible/);
+  const scrollbar = await page.evaluate(() => ({
+    html: getComputedStyle(document.documentElement).scrollbarWidth,
+    body: getComputedStyle(document.body).scrollbarWidth,
+    htmlDisplay: getComputedStyle(
+      document.documentElement,
+      "::-webkit-scrollbar",
+    ).display,
+    bodyDisplay: getComputedStyle(document.body, "::-webkit-scrollbar").display,
+  }));
+  expect(scrollbar.html).toBe("none");
+  expect(scrollbar.body).toBe("none");
+  expect(scrollbar.htmlDisplay).toBe("none");
+  expect(scrollbar.bodyDisplay).toBe("none");
 
-  await page.mouse.wheel(0, 500);
-  await expect(page.locator("html")).toHaveClass(/scrollbar-visible/);
-
-  await page.waitForTimeout(850);
+  await page.evaluate(() => scrollTo(0, 500));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
   await expect(page.locator("html")).not.toHaveClass(/scrollbar-visible/);
+  await expect(page.locator("body")).not.toHaveClass(/scrollbar-visible/);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth - innerWidth,
