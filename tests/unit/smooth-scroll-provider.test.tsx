@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { act, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
 
 const scrollMocks = vi.hoisted(() => ({
@@ -48,6 +48,7 @@ function mockMedia({
 
 describe("SmoothScrollProvider", () => {
   beforeEach(() => {
+    vi.useRealTimers();
     scrollMocks.instances = 0;
     vi.clearAllMocks();
     delete document.documentElement.dataset.scrollEngine;
@@ -121,5 +122,33 @@ describe("SmoothScrollProvider", () => {
     expect(window.location.hash).toBe("#contact");
     expect(scrollMocks.scrollTo).toHaveBeenCalledWith(target, { offset: -90 });
     target.remove();
+  });
+
+  it("shows the scrollbar while scrolling and resets one hide timer", () => {
+    vi.useFakeTimers();
+    mockMedia({ finePointer: false, reducedMotion: false });
+    const { unmount } = render(
+      <SmoothScrollProvider loadScroll={loadScroll}>
+        <main>content</main>
+      </SmoothScrollProvider>,
+    );
+
+    fireEvent.scroll(window);
+    expect(document.documentElement).toHaveClass("scrollbar-visible");
+
+    act(() => vi.advanceTimersByTime(500));
+    fireEvent.scroll(window);
+    act(() => vi.advanceTimersByTime(500));
+    expect(document.documentElement).toHaveClass("scrollbar-visible");
+
+    act(() => vi.advanceTimersByTime(251));
+    expect(document.documentElement).not.toHaveClass("scrollbar-visible");
+
+    fireEvent.scroll(window);
+    unmount();
+    expect(document.documentElement).not.toHaveClass("scrollbar-visible");
+    expect(vi.getTimerCount()).toBe(0);
+    fireEvent.scroll(window);
+    expect(document.documentElement).not.toHaveClass("scrollbar-visible");
   });
 });

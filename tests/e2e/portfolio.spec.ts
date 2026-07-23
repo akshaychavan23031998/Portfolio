@@ -101,6 +101,26 @@ test("one scroll engine preserves anchors, history, and fallbacks", async ({
   ).toBeLessThanOrEqual(1);
 });
 
+test("desktop scrollbar thumb is active only during scrolling", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile);
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveClass(/scrollbar-visible/);
+
+  await page.mouse.wheel(0, 500);
+  await expect(page.locator("html")).toHaveClass(/scrollbar-visible/);
+
+  await page.waitForTimeout(850);
+  await expect(page.locator("html")).not.toHaveClass(/scrollbar-visible/);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - innerWidth,
+    ),
+  ).toBeLessThanOrEqual(1);
+});
+
 test("mobile navigation follows the reference behavior", async ({
   page,
   isMobile,

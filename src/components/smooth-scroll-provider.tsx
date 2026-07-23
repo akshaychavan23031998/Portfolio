@@ -28,6 +28,16 @@ export function SmoothScrollProvider({
     const desktopPointer = window.matchMedia(desktopPointerQuery);
     const reducedMotion = window.matchMedia(reducedMotionQuery);
     let disposed = false;
+    let scrollbarTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const showScrollbar = () => {
+      root.classList.add("scrollbar-visible");
+      clearTimeout(scrollbarTimer);
+      scrollbarTimer = setTimeout(() => {
+        root.classList.remove("scrollbar-visible");
+        scrollbarTimer = undefined;
+      }, 750);
+    };
 
     const scrollToHash = (hash: string) => {
       if (!hash.startsWith("#")) return;
@@ -48,10 +58,14 @@ export function SmoothScrollProvider({
     };
 
     window.addEventListener("portfolio:navigate-hash", onHashNavigation);
+    window.addEventListener("scroll", showScrollbar, { passive: true });
 
     if (!desktopPointer.matches || reducedMotion.matches) {
       root.dataset.scrollEngine = "native";
       return () => {
+        clearTimeout(scrollbarTimer);
+        root.classList.remove("scrollbar-visible");
+        window.removeEventListener("scroll", showScrollbar);
         window.removeEventListener("portfolio:navigate-hash", onHashNavigation);
         delete root.dataset.scrollEngine;
       };
@@ -88,6 +102,9 @@ export function SmoothScrollProvider({
     return () => {
       disposed = true;
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      clearTimeout(scrollbarTimer);
+      root.classList.remove("scrollbar-visible");
+      window.removeEventListener("scroll", showScrollbar);
       window.removeEventListener("portfolio:navigate-hash", onHashNavigation);
       instanceRef.current?.destroy();
       instanceRef.current = null;
