@@ -56,6 +56,26 @@ test("the old square-grid background is removed and reduced motion stops decorat
   expect(css).toMatch(/prefers-reduced-motion[\s\S]*\.global-signal/);
 });
 
+test("mobile native scrolling pauses the star repaint loop without changing desktop Locomotive", () => {
+  const runtime = readFileSync("public/reference-runtime.js", "utf8");
+  const smoothScroll = readFileSync(
+    "src/components/smooth-scroll-provider.tsx",
+    "utf8",
+  );
+
+  expect(runtime).toContain("(hover: none) and (pointer: coarse)");
+  expect(runtime).toContain("pauseStarsDuringTouchScroll");
+  expect(runtime).toMatch(
+    /addEventListener\("scroll", pauseStarsDuringTouchScroll, \{\s*passive: true,/,
+  );
+  expect(runtime).toContain("cancelAnimationFrame(starsFrame)");
+  expect(runtime).toContain("window.setTimeout(startStars, 180)");
+  expect(smoothScroll).toContain('"(pointer: fine) and (hover: hover)"');
+  expect(smoothScroll).toContain("lerp: 0.12");
+  expect(smoothScroll).toContain("smoothWheel: true");
+  expect(smoothScroll).toContain("syncTouch: false");
+});
+
 test("local assets and résumé configuration are centralized", () => {
   const projects = readFileSync("src/data/projects.ts", "utf8");
   const testimonials = readFileSync("src/data/testimonials.ts", "utf8");
@@ -83,6 +103,8 @@ test("requested skills, domains, and email actions are centralized", () => {
   expect(skills.match(/"Go"/g)).toHaveLength(1);
   expect(skills.match(/"gRPC"/g)).toHaveLength(1);
   expect(skills.match(/"Kubernetes"/g)).toHaveLength(1);
+  expect(skills.match(/"JavaScript"/g)).toHaveLength(1);
+  expect(skills.match(/"Grafana"/g)).toHaveLength(1);
   expect(experience).toContain('tag: "AI CRM"');
   expect(experience).toContain('tag: "Banking"');
   expect(experience).toContain('tag: "E-Comm"');

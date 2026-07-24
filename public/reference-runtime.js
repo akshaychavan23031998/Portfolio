@@ -274,7 +274,15 @@
           );
         }
         let starsFrame = 0;
+        let starsResumeTimer = 0;
+        const coarsePointer = matchMedia("(hover: none) and (pointer: coarse)");
+        function startStars() {
+          if (!document.hidden && !starsFrame) {
+            starsFrame = requestAnimationFrame(draw);
+          }
+        }
         function draw() {
+          starsFrame = 0;
           ctx.clearRect(0, 0, innerWidth, innerHeight);
           ctx.fillStyle = getComputedStyle(root).getPropertyValue("--dim");
           pts.forEach((p) => {
@@ -285,19 +293,35 @@
             ctx.arc(p.x, p.y, p.r, 0, 7);
             ctx.fill();
           });
-          starsFrame = requestAnimationFrame(draw);
+          startStars();
         }
-        addEventListener("resize", resize);
-        document.addEventListener("visibilitychange", () => {
-          if (document.hidden && starsFrame) {
+        function pauseStarsDuringTouchScroll() {
+          if (starsFrame) {
             cancelAnimationFrame(starsFrame);
             starsFrame = 0;
-          } else if (!document.hidden && !starsFrame) {
-            starsFrame = requestAnimationFrame(draw);
+          }
+          clearTimeout(starsResumeTimer);
+          starsResumeTimer = window.setTimeout(startStars, 180);
+        }
+        addEventListener("resize", resize);
+        if (coarsePointer.matches) {
+          addEventListener("scroll", pauseStarsDuringTouchScroll, {
+            passive: true,
+          });
+        }
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            clearTimeout(starsResumeTimer);
+            if (starsFrame) {
+              cancelAnimationFrame(starsFrame);
+              starsFrame = 0;
+            }
+          } else {
+            startStars();
           }
         });
         resize();
-        starsFrame = requestAnimationFrame(draw);
+        startStars();
       }
 
       // Testimonial carousel

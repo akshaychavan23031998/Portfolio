@@ -4,6 +4,7 @@ export const skillGroups = [
     skills: [
       "React.js",
       "Next.js",
+      "JavaScript",
       "TypeScript",
       "JavaScript ES6+",
       "Redux Toolkit",
@@ -61,6 +62,7 @@ export const skillGroups = [
       "Mockito",
       "JaCoCo",
       "SonarQube",
+      "Grafana",
       "React Testing Library",
       "Playwright",
     ],

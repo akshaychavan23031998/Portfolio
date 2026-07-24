@@ -121,9 +121,27 @@ function getReferenceBody() {
   const backendSkills = skillGroups.find(
     (group) => group.title === "Backend & APIs",
   )?.skills;
+  const interfaceSkills = skillGroups.find(
+    (group) => group.title === "Interface systems",
+  )?.skills;
+  const qualitySkills = skillGroups.find(
+    (group) => group.title === "Quality",
+  )?.skills;
   const deliverySkills = skillGroups.find(
     (group) => group.title === "Delivery",
   )?.skills;
+  if (interfaceSkills?.includes("JavaScript")) {
+    homepage = homepage.replace(
+      '<span class="pill">TypeScript</span',
+      '<span class="pill">JavaScript</span><span class="pill">TypeScript</span',
+    );
+  }
+  if (qualitySkills?.includes("Grafana")) {
+    homepage = homepage.replace(
+      '<span class="pill">GitHub Actions</span',
+      '<span class="pill">Grafana</span><span class="pill">GitHub Actions</span',
+    );
+  }
   for (const skill of ["Go", "gRPC"] as const) {
     if (backendSkills?.includes(skill)) {
       homepage = homepage.replace(

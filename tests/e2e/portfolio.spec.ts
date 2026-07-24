@@ -516,10 +516,15 @@ test("profile, actions, skills, domains, and full-width project media are correc
 
   const capabilityCards = page.locator(".stack-card");
   await expect(capabilityCards).toHaveCount(6);
+  const frontend = capabilityCards.filter({ hasText: "Frontend Systems" });
   const backend = capabilityCards.filter({ hasText: "Backend & APIs" });
   const delivery = capabilityCards.filter({ hasText: "Quality & Delivery" });
+  await expect(frontend.getByText("JavaScript", { exact: true })).toHaveCount(
+    1,
+  );
   await expect(backend.getByText("Go", { exact: true })).toHaveCount(1);
   await expect(backend.getByText("gRPC", { exact: true })).toHaveCount(1);
+  await expect(delivery.getByText("Grafana", { exact: true })).toHaveCount(1);
   await expect(delivery.getByText("Kubernetes", { exact: true })).toHaveCount(
     1,
   );
