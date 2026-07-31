@@ -111,6 +111,9 @@ test("requested skills, domains, and email actions are centralized", () => {
   expect(experience).not.toMatch(/Banking Domain|E-Commerce Domain/);
   expect(site).toContain('emailMailto: "mailto:akshayrchavan07@gmail.com"');
   expect(site).toContain(
+    'linkedin: "https://www.linkedin.com/in/akshay-chavan23/"',
+  );
+  expect(site).toContain(
     '"https://mail.google.com/mail/?view=cm&fs=1&to=akshayrchavan07@gmail.com"',
   );
 });

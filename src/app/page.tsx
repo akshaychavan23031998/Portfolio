@@ -178,6 +178,10 @@ function getReferenceBody() {
 
   homepage = homepage
     .replace(
+      "https://linkedin.com/in/akshayrchavan07",
+      siteConfig.linkedin,
+    )
+    .replace(
       '<li><a href="#contact">Contact</a></li>',
       '<li><a href="#contact">Contact</a></li><li class="mobile-theme"><span>Theme</span><button id="mobileThemeBtn" type="button" aria-pressed="false"><span data-theme-state>Dark</span><span data-theme-icon aria-hidden="true">☾</span></button></li><li class="mobile-hire"><a href="#contact">Hire me ↗</a></li>',
     )

@@ -10,7 +10,7 @@ export const siteConfig = {
   emailGmail:
     "https://mail.google.com/mail/?view=cm&fs=1&to=akshayrchavan07@gmail.com",
   phone: "+91 8180004924",
-  linkedin: "https://linkedin.com/in/akshayrchavan07",
+  linkedin: "https://www.linkedin.com/in/akshay-chavan23/",
   whatsapp: "https://wa.me/918180004924",
   messenger: "https://m.me/akshayrchavan07",
   github: "https://github.com/akshaychavan23031998",
