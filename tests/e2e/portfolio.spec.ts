@@ -35,7 +35,64 @@ test("homepage preserves the reference structure and interactions", async ({
     "Ship / Measure",
   ]);
   await expect(page.locator(".ring .sat")).toHaveCount(2);
-  await expect(page.locator(".project")).toHaveCount(9);
+  await expect(page.locator(".project")).toHaveCount(11);
+  const matchEngineCard = page.locator(".project", {
+    hasText: "Three-Way Match Engine",
+  });
+  await expect(matchEngineCard).toHaveCount(1);
+  await expect(
+    matchEngineCard.getByRole("link", { name: /case study/i }),
+  ).toHaveCount(0);
+  await expect(
+    matchEngineCard.getByRole("link", { name: /source code/i }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/akshaychavan23031998/Three-Way-Match-Engine",
+  );
+  await expect(
+    matchEngineCard.getByRole("link", { name: /live application/i }),
+  ).toHaveAttribute("href", "https://three-way-match-engine-web.vercel.app/");
+  await expect(matchEngineCard.locator(".project-links a")).toHaveCount(2);
+  await expect(
+    page.locator('a[href="/projects/three-way-match-engine"]'),
+  ).toHaveCount(0);
+  const pipelineCard = page.locator(".project", {
+    hasText: "Pipeline Builder",
+  });
+  await expect(pipelineCard).toHaveCount(1);
+  await expect(
+    pipelineCard.getByRole("link", { name: /case study/i }),
+  ).toHaveCount(0);
+  await expect(
+    pipelineCard.getByRole("link", { name: /source code/i }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/akshaychavan23031998/Pipeline-Builder",
+  );
+  await expect(
+    pipelineCard.getByRole("link", { name: /live application/i }),
+  ).toHaveAttribute("href", "https://vector-shift-alpha.vercel.app/");
+  await expect(pipelineCard.locator(".project-links a")).toHaveCount(2);
+  for (const card of [
+    page.locator(".project.featured").first(),
+    matchEngineCard,
+    pipelineCard,
+  ]) {
+    await expect(card.locator(".pills")).toHaveCount(0);
+  }
+  await expect(page.locator(".project.featured .placeholder")).toContainText(
+    "Auth",
+  );
+  await expect(page.locator(".project.featured .case")).toHaveCount(1);
+  await expect(
+    page.locator('a[href="/projects/pipeline-builder"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator("#labs .lab", { hasText: "Pipeline Builder" }),
+  ).toHaveCount(1);
+  await expect(page.locator("body")).not.toContainText(
+    /VectorShift|Vector Shift/,
+  );
   await expect(page.locator("#stars")).toHaveCount(1);
   await expect(page.locator(".spot")).toHaveCount(1);
 
@@ -47,9 +104,23 @@ test("homepage preserves the reference structure and interactions", async ({
   }
 
   await page.locator('.filter[data-filter="ai"]').click();
-  await expect(page.locator(".project:not(.hidden)")).toHaveCount(2);
+  await expect(page.locator(".project:not(.hidden)")).toHaveCount(3);
+  await expect(
+    page.locator(".project:not(.hidden)", {
+      hasText: "Three-Way Match Engine",
+    }),
+  ).toHaveCount(1);
+  await expect(
+    page.locator(".project:not(.hidden)", { hasText: "Pipeline Builder" }),
+  ).toHaveCount(0);
+  await page.locator('.filter[data-filter="fullstack"]').click();
+  await expect(page.locator(".project:not(.hidden)")).toHaveCount(5);
+  await page.locator('.filter[data-filter="frontend"]').click();
+  await expect(page.locator(".project:not(.hidden)")).toHaveCount(7);
+  await page.locator('.filter[data-filter="backend"]').click();
+  await expect(page.locator(".project:not(.hidden)")).toHaveCount(5);
   await page.locator('.filter[data-filter="all"]').click();
-  await expect(page.locator(".project:not(.hidden)")).toHaveCount(9);
+  await expect(page.locator(".project:not(.hidden)")).toHaveCount(11);
 
   expect(
     await page.evaluate(
@@ -207,9 +278,30 @@ test("project routes, resume, and not-found route remain available", async ({
     await expect(page.locator(".case-image img")).toBeVisible();
   }
   expect((await page.goto("/not-a-real-route"))?.status()).toBe(404);
+  expect((await page.goto("/projects/three-way-match-engine"))?.status()).toBe(
+    404,
+  );
+  expect((await page.goto("/projects/pipeline-builder"))?.status()).toBe(404);
+  const sitemap = await (await page.request.get("/sitemap.xml")).text();
+  expect(sitemap).not.toContain("/projects/three-way-match-engine");
+  expect(sitemap).not.toContain("/projects/pipeline-builder");
   expect(
     (await page.request.get("/resume/akshay-ram-chavan-resume.pdf")).ok(),
   ).toBeTruthy();
+});
+
+test("Rabbit case study still opens its modal without changing history", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.waitForTimeout(1900);
+  const initialUrl = page.url();
+  await page.locator(".project.featured .case").click();
+  await expect(page.locator("#caseModal")).toHaveClass(/open/);
+  expect(page.url()).toBe(initialUrl);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#caseModal")).not.toHaveClass(/open/);
+  expect(page.url()).toBe(initialUrl);
 });
 
 test("reference source remains present and untouched by runtime", async () => {
@@ -372,6 +464,8 @@ test("local images, résumé download, and ticker alignment are correct", async 
 }) => {
   const projectPaths = [
     "/images/projects/rabbit-ecommerce.png",
+    "/images/projects/three-way-engine.png",
+    "/images/projects/pipeline-builder.png",
     "/images/projects/ai-quick-blog.png",
     "/images/projects/quick-chat.png",
     "/images/projects/giphy-clone.jpg",
@@ -391,7 +485,7 @@ test("local images, résumé download, and ticker alignment are correct", async 
   await page.waitForTimeout(1900);
 
   const projectImages = page.locator(".project .visual img");
-  await expect(projectImages).toHaveCount(9);
+  await expect(projectImages).toHaveCount(11);
   for (const [index, assetPath] of projectPaths.entries()) {
     await expect(projectImages.nth(index)).toHaveAttribute(
       "src",
@@ -565,11 +659,11 @@ test("profile, actions, skills, domains, and full-width project media are correc
         };
       }),
     );
-  expect(mediaResults).toHaveLength(9);
-  for (const media of mediaResults) {
+  expect(mediaResults).toHaveLength(11);
+  for (const [index, media] of mediaResults.entries()) {
     expect(media.widthDelta).toBeLessThanOrEqual(2);
     expect(media.maxWidth).toBe("none");
-    expect(media.objectFit).toBe("cover");
+    expect(media.objectFit).toBe([1, 2].includes(index) ? "contain" : "cover");
     expect(media.aspectRatio).toBeGreaterThan(1);
   }
 

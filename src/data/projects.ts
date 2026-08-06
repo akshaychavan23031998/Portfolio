@@ -1,6 +1,9 @@
 export type Project = {
   title: string;
   slug: string;
+  label?: string;
+  hasCaseStudy?: boolean;
+  showTechnologiesOnCard?: boolean;
   categories: string[];
   technologies: string[];
   github: string;
@@ -16,6 +19,7 @@ export const projects: Project[] = [
   {
     title: "Rabbit – MERN Stack E-Commerce App",
     slug: "rabbit-ecommerce",
+    showTechnologiesOnCard: false,
     categories: ["Full Stack"],
     technologies: [
       "MongoDB",
@@ -35,6 +39,52 @@ export const projects: Project[] = [
     image: "/images/projects/rabbit-ecommerce.png",
     imageAlt: "Rabbit e-commerce application storefront",
     imageFit: "cover",
+  },
+  {
+    title: "Three-Way Match Engine",
+    slug: "three-way-match-engine",
+    label: "AI FINANCE AUTOMATION",
+    hasCaseStudy: false,
+    showTechnologiesOnCard: false,
+    categories: ["AI", "Full Stack", "Backend"],
+    technologies: [
+      "Next.js",
+      "TypeScript",
+      "Node.js",
+      "Express",
+      "MongoDB",
+      "Gemini API",
+    ],
+    github: "https://github.com/akshaychavan23031998/Three-Way-Match-Engine",
+    live: "https://three-way-match-engine-web.vercel.app/",
+    description:
+      "An AI-enabled finance and procurement reconciliation system that compares Purchase Orders, Goods Received Notes, and Invoices to classify records as matched, partially matched, mismatched, or pending.",
+    image: "/images/projects/three-way-engine.png",
+    imageAlt: "Three-Way Match Engine purchase order summary dashboard",
+    imageFit: "contain",
+  },
+  {
+    title: "Pipeline Builder",
+    slug: "pipeline-builder",
+    label: "VISUAL WORKFLOW BUILDER",
+    hasCaseStudy: false,
+    showTechnologiesOnCard: false,
+    categories: ["Full Stack", "Frontend", "Backend"],
+    technologies: [
+      "React",
+      "ReactFlow",
+      "Zustand",
+      "FastAPI",
+      "Python",
+      "JavaScript",
+    ],
+    github: "https://github.com/akshaychavan23031998/Pipeline-Builder",
+    live: "https://vector-shift-alpha.vercel.app/",
+    description:
+      "A visual workflow builder where users can drag, configure, and connect nodes while a FastAPI backend validates whether the resulting pipeline forms a valid directed acyclic graph.",
+    image: "/images/projects/pipeline-builder.png",
+    imageAlt: "Pipeline Builder visual node workflow canvas",
+    imageFit: "contain",
   },
   {
     title: "AI Quick Blog – MERN Stack Blogging App",
@@ -183,8 +233,13 @@ export const projectCategories = [
   "All",
   "Frontend",
   "Full Stack",
+  "Backend",
   "AI",
   "Realtime",
   "Motion",
   "Creative Development",
 ] as const;
+
+export const caseStudyProjects = projects.filter(
+  (project) => project.hasCaseStudy !== false,
+);

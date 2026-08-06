@@ -51,6 +51,35 @@ function optimizedImage({
   }>`;
 }
 
+function referenceProjectCard(project: (typeof projects)[number]) {
+  const categories = project.categories
+    .map((category) => category.toLowerCase().replaceAll(" ", ""))
+    .join(" ");
+  const technologies =
+    project.showTechnologiesOnCard === false
+      ? ""
+      : `<div class="pills">${project.technologies
+          .map(
+            (technology) =>
+              `<span class="pill">${escapeAttribute(technology)}</span>`,
+          )
+          .join("")}</div>`;
+
+  return `<article class="project reveal" data-cat="${escapeAttribute(categories)}">
+    <span class="project-num">02 / ${escapeAttribute(project.label ?? project.categories[0])}</span>
+    <h3>${escapeAttribute(project.title)}</h3>
+    <p>${escapeAttribute(project.description)}</p>
+    <div class="visual"><div class="screen"></div></div>
+    ${technologies}
+    <div class="project-meta">
+      <div class="project-links">
+        <a class="mini" href="${escapeAttribute(project.github)}" target="_blank" rel="noopener noreferrer" aria-label="View ${escapeAttribute(project.title)} source code">Code ↗</a>
+        <a class="mini" href="${escapeAttribute(project.live ?? "")}" target="_blank" rel="noopener noreferrer" aria-label="Open ${escapeAttribute(project.title)} live application">Live ↗</a>
+      </div>
+    </div>
+  </article>`;
+}
+
 function getReferenceBody() {
   const source = fs.readFileSync(
     path.join(
@@ -75,6 +104,27 @@ function getReferenceBody() {
         priority: true,
       }).slice(5, -1),
     );
+
+  homepage = homepage.replace(
+    /(<h3>Rabbit[\s\S]*?<div class="visual"><div class="screen"><\/div><\/div>)\s*<div class="pills">[\s\S]*?<\/div>/,
+    "$1",
+  );
+
+  const projectsWithoutCaseStudies = projects.filter(
+    (project) => project.hasCaseStudy === false,
+  );
+  if (projectsWithoutCaseStudies.length > 0) {
+    homepage = homepage.replace(
+      '<article class="project reveal" data-cat="fullstack ai backend">',
+      `${projectsWithoutCaseStudies.map(referenceProjectCard).join("")}<article class="project reveal" data-cat="fullstack ai backend">`,
+    );
+    let projectNumber = 0;
+    homepage = homepage.replace(
+      /(<span class="project-num">)\d{2}(\s*\/)/g,
+      (_match, opening: string, separator: string) =>
+        `${opening}${String(++projectNumber).padStart(2, "0")}${separator}`,
+    );
+  }
 
   projects.forEach((project, index) => {
     homepage = homepage.replace(
@@ -177,10 +227,7 @@ function getReferenceBody() {
   }
 
   homepage = homepage
-    .replace(
-      "https://linkedin.com/in/akshayrchavan07",
-      siteConfig.linkedin,
-    )
+    .replace("https://linkedin.com/in/akshayrchavan07", siteConfig.linkedin)
     .replace(
       '<li><a href="#contact">Contact</a></li>',
       '<li><a href="#contact">Contact</a></li><li class="mobile-theme"><span>Theme</span><button id="mobileThemeBtn" type="button" aria-pressed="false"><span data-theme-state>Dark</span><span data-theme-icon aria-hidden="true">☾</span></button></li><li class="mobile-hire"><a href="#contact">Hire me ↗</a></li>',

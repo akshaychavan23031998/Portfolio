@@ -3,15 +3,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CodeXml, ExternalLink } from "lucide-react";
 import { notFound } from "next/navigation";
-import { projects } from "@/data/projects";
+import { caseStudyProjects, projects } from "@/data/projects";
 
 type Props = { params: Promise<{ slug: string }> };
+export const dynamicParams = false;
 export function generateStaticParams() {
-  return projects.map(({ slug }) => ({ slug }));
+  return caseStudyProjects.map(({ slug }) => ({ slug }));
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const project = projects.find((item) => item.slug === slug);
+  const project = caseStudyProjects.find((item) => item.slug === slug);
   return project
     ? {
         title: project.title,
@@ -26,9 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function ProjectPage({ params }: Props) {
   const { slug } = await params;
-  const project = projects.find((item) => item.slug === slug);
+  const project = caseStudyProjects.find((item) => item.slug === slug);
   if (!project) notFound();
-  const related = projects
+  const related = caseStudyProjects
     .filter(
       (item) =>
         item.slug !== project.slug &&
@@ -37,6 +38,42 @@ export default async function ProjectPage({ params }: Props) {
         ),
     )
     .slice(0, 3);
+  const caseStudySections = [
+    {
+      title: "Project overview",
+      content:
+        "This build turns a clear product workflow into a maintainable application: deliberate interface states, defined data boundaries, reusable components, and responsive behavior across devices.",
+    },
+    {
+      title: "Challenge",
+      content:
+        "The central challenge was coordinating user intent, asynchronous work, loading and error states, and consistent UI behavior without allowing the implementation to become tightly coupled.",
+    },
+    {
+      title: "Solution & architecture",
+      content:
+        "The solution separates presentation, state transitions, API communication, and persistence. Requests pass through validation and explicit error handling before state is reconciled in the interface.",
+    },
+    {
+      title: "Engineering decisions",
+      content:
+        "Reusable primitives keep repeated behavior consistent. Data-driven rendering improves maintainability, protected boundaries reduce invalid access, and responsive layouts preserve task completion on small screens.",
+    },
+    {
+      title: "Key features",
+      content: `${project.description} The implementation also includes intentional empty, loading, success, and failure states.`,
+    },
+    {
+      title: "Result & learnings",
+      content:
+        "The finished application demonstrates end-to-end product ownership without inventing business outcomes. The work reinforced the value of designing state boundaries and failure behavior before adding visual polish.",
+    },
+    {
+      title: "Future improvements",
+      content:
+        "Next steps include deeper automated coverage, richer observability, stronger offline or retry behavior where appropriate, and continued accessibility validation with real users and assistive technology.",
+    },
+  ];
   return (
     <main className="case-study">
       <nav className="case-nav">
@@ -93,42 +130,15 @@ export default async function ProjectPage({ params }: Props) {
           </div>
         </aside>
         <div>
-          <CaseSection number="01" title="Project overview">
-            This build turns a clear product workflow into a maintainable
-            application: deliberate interface states, defined data boundaries,
-            reusable components, and responsive behavior across devices.
-          </CaseSection>
-          <CaseSection number="02" title="Challenge">
-            The central challenge was coordinating user intent, asynchronous
-            work, loading and error states, and consistent UI behavior without
-            allowing the implementation to become tightly coupled.
-          </CaseSection>
-          <CaseSection number="03" title="Solution & architecture">
-            The solution separates presentation, state transitions, API
-            communication, and persistence. Requests pass through validation and
-            explicit error handling before state is reconciled in the interface.
-          </CaseSection>
-          <CaseSection number="04" title="Engineering decisions">
-            Reusable primitives keep repeated behavior consistent. Data-driven
-            rendering improves maintainability, protected boundaries reduce
-            invalid access, and responsive layouts preserve task completion on
-            small screens.
-          </CaseSection>
-          <CaseSection number="05" title="Key features">
-            {project.description} The implementation also includes intentional
-            empty, loading, success, and failure states.
-          </CaseSection>
-          <CaseSection number="06" title="Result & learnings">
-            The finished application demonstrates end-to-end product ownership
-            without inventing business outcomes. The work reinforced the value
-            of designing state boundaries and failure behavior before adding
-            visual polish.
-          </CaseSection>
-          <CaseSection number="07" title="Future improvements">
-            Next steps include deeper automated coverage, richer observability,
-            stronger offline or retry behavior where appropriate, and continued
-            accessibility validation with real users and assistive technology.
-          </CaseSection>
+          {caseStudySections.map((section, index) => (
+            <CaseSection
+              number={String(index + 1).padStart(2, "0")}
+              title={section.title}
+              key={section.title}
+            >
+              {section.content}
+            </CaseSection>
+          ))}
         </div>
       </div>
       <section className="related">
