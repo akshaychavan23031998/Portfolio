@@ -97,11 +97,11 @@ test("project order and uniqueness are preserved around the insertion", () => {
   expect(new Set(projects.map((project) => project.title)).size).toBe(11);
 });
 
-test("technology metadata remains intact when card chips are hidden", () => {
+test("technology metadata remains intact while all card chips are enabled", () => {
   expect(
     projects.find((project) => project.slug === "rabbit-ecommerce"),
   ).toMatchObject({
-    showTechnologiesOnCard: false,
+    showTechnologiesOnCard: true,
     technologies: [
       "MongoDB",
       "Express.js",
@@ -117,7 +117,7 @@ test("technology metadata remains intact when card chips are hidden", () => {
   expect(
     projects.find((project) => project.slug === "three-way-match-engine"),
   ).toMatchObject({
-    showTechnologiesOnCard: false,
+    showTechnologiesOnCard: true,
     technologies: [
       "Next.js",
       "TypeScript",
@@ -130,7 +130,7 @@ test("technology metadata remains intact when card chips are hidden", () => {
   expect(
     projects.find((project) => project.slug === "pipeline-builder"),
   ).toMatchObject({
-    showTechnologiesOnCard: false,
+    showTechnologiesOnCard: true,
     technologies: [
       "React",
       "ReactFlow",
@@ -140,4 +140,15 @@ test("technology metadata remains intact when card chips are hidden", () => {
       "JavaScript",
     ],
   });
+});
+
+test("every project has a non-empty card technology subset capped at six", () => {
+  for (const project of projects) {
+    expect(project.technologies.length).toBeGreaterThan(0);
+    expect(project.cardTechnologies?.length).toBeGreaterThan(0);
+    expect(project.cardTechnologies?.length).toBeLessThanOrEqual(6);
+    for (const technology of project.cardTechnologies ?? []) {
+      expect(project.technologies).toContain(technology);
+    }
+  }
 });

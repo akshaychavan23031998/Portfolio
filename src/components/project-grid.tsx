@@ -82,14 +82,19 @@ export function ProjectGrid() {
                   )}
                 </h3>
                 <p>{project.description}</p>
-                {project.showTechnologiesOnCard !== false && (
-                  <div className="tags">
-                    {project.technologies.slice(0, 5).map((tag) => (
+                <div className="tags">
+                  {(
+                    project.cardTechnologies ?? project.technologies.slice(0, 6)
+                  )
+                    .slice(0, 6)
+                    .map((tag) => (
                       <span key={tag}>{tag}</span>
                     ))}
-                  </div>
-                )}
+                </div>
                 <div className="card-links">
+                  <button type="button" data-case-study-slug={project.slug}>
+                    Case study
+                  </button>
                   <a
                     href={project.github}
                     target="_blank"
@@ -107,9 +112,6 @@ export function ProjectGrid() {
                       <ExternalLink size={16} />{" "}
                       {project.live ? "Live" : "Demo"}
                     </a>
-                  )}
-                  {project.hasCaseStudy !== false && (
-                    <Link href={`/projects/${project.slug}`}>Case study →</Link>
                   )}
                 </div>
               </div>

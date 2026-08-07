@@ -19,7 +19,7 @@ vi.mock("next/image", () => ({
   },
 }));
 describe("Project filters", () => {
-  it("filters by AI and exposes real case study links", async () => {
+  it("filters by AI and exposes modal case study actions", async () => {
     render(<ProjectGrid />);
     fireEvent.click(screen.getByRole("button", { name: "AI" }));
     expect(screen.getByText("Netflix GPT")).toBeInTheDocument();
@@ -30,7 +30,9 @@ describe("Project filters", () => {
     );
     expect(screen.getByText("Three-Way Match Engine")).toBeInTheDocument();
     expect(screen.queryByText("Pipeline Builder")).not.toBeInTheDocument();
-    expect(screen.getAllByText("Case study →")).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Case study" })).toHaveLength(
+      3,
+    );
   });
 
   it("includes Pipeline Builder in Full Stack, Frontend, and Backend only", async () => {
@@ -53,7 +55,7 @@ describe("Project filters", () => {
     }
   });
 
-  it("renders only Code and Live actions for Three-Way Match Engine", () => {
+  it("renders Case study, Code, and Live for Three-Way Match Engine", () => {
     render(<ProjectGrid />);
     const card = screen.getByText("Three-Way Match Engine").closest("article");
     expect(card).not.toBeNull();
@@ -64,11 +66,11 @@ describe("Project filters", () => {
       "Live",
     ]);
     expect(
-      within(card as HTMLElement).queryByText(/case study/i),
-    ).not.toBeInTheDocument();
+      within(card as HTMLElement).getByRole("button", { name: "Case study" }),
+    ).toHaveAttribute("data-case-study-slug", "three-way-match-engine");
   });
 
-  it("renders only Code and Live actions for Pipeline Builder", () => {
+  it("renders Case study, Code, and Live for Pipeline Builder", () => {
     render(<ProjectGrid />);
     const card = screen.getByText("Pipeline Builder").closest("article");
     expect(card).not.toBeNull();
@@ -79,21 +81,17 @@ describe("Project filters", () => {
       "Live",
     ]);
     expect(
-      within(card as HTMLElement).queryByText(/case study/i),
-    ).not.toBeInTheDocument();
+      within(card as HTMLElement).getByRole("button", { name: "Case study" }),
+    ).toHaveAttribute("data-case-study-slug", "pipeline-builder");
   });
 
-  it("hides only the requested card technology containers", () => {
+  it("renders a non-empty technology container capped at six on every card", () => {
     render(<ProjectGrid />);
-    for (const title of [
-      /Rabbit/,
-      "Three-Way Match Engine",
-      "Pipeline Builder",
-    ]) {
-      const card = screen.getByText(title).closest("article");
-      expect(card?.querySelector(".tags")).not.toBeInTheDocument();
+    for (const card of document.querySelectorAll("article.project-card")) {
+      const tags = card.querySelector(".tags");
+      expect(tags).toBeInTheDocument();
+      expect(tags?.children.length).toBeGreaterThan(0);
+      expect(tags?.children.length).toBeLessThanOrEqual(6);
     }
-    const unchangedCard = screen.getByText(/AI Quick Blog/).closest("article");
-    expect(unchangedCard?.querySelector(".tags")).toBeInTheDocument();
   });
 });

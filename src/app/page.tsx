@@ -3,6 +3,7 @@ import path from "node:path";
 import { getImageProps } from "next/image";
 import Script from "next/script";
 import { EmailJsContactBridge } from "@/components/emailjs-contact-bridge";
+import { ProjectCaseStudyModal } from "@/components/project-case-study-modal";
 import { siteConfig } from "@/config/site";
 import { experience } from "@/data/experience";
 import { projects } from "@/data/projects";
@@ -55,15 +56,14 @@ function referenceProjectCard(project: (typeof projects)[number]) {
   const categories = project.categories
     .map((category) => category.toLowerCase().replaceAll(" ", ""))
     .join(" ");
-  const technologies =
-    project.showTechnologiesOnCard === false
-      ? ""
-      : `<div class="pills">${project.technologies
-          .map(
-            (technology) =>
-              `<span class="pill">${escapeAttribute(technology)}</span>`,
-          )
-          .join("")}</div>`;
+  const technologies = `<div class="pills">${(
+    project.cardTechnologies ?? project.technologies.slice(0, 6)
+  )
+    .map(
+      (technology) =>
+        `<span class="pill">${escapeAttribute(technology)}</span>`,
+    )
+    .join("")}</div>`;
 
   return `<article class="project reveal" data-cat="${escapeAttribute(categories)}">
     <span class="project-num">02 / ${escapeAttribute(project.label ?? project.categories[0])}</span>
@@ -73,6 +73,7 @@ function referenceProjectCard(project: (typeof projects)[number]) {
     ${technologies}
     <div class="project-meta">
       <div class="project-links">
+        <button class="mini case" type="button" data-case-study-slug="${escapeAttribute(project.slug)}">Case study</button>
         <a class="mini" href="${escapeAttribute(project.github)}" target="_blank" rel="noopener noreferrer" aria-label="View ${escapeAttribute(project.title)} source code">Code ↗</a>
         <a class="mini" href="${escapeAttribute(project.live ?? "")}" target="_blank" rel="noopener noreferrer" aria-label="Open ${escapeAttribute(project.title)} live application">Live ↗</a>
       </div>
@@ -104,11 +105,6 @@ function getReferenceBody() {
         priority: true,
       }).slice(5, -1),
     );
-
-  homepage = homepage.replace(
-    /(<h3>Rabbit[\s\S]*?<div class="visual"><div class="screen"><\/div><\/div>)\s*<div class="pills">[\s\S]*?<\/div>/,
-    "$1",
-  );
 
   const projectsWithoutCaseStudies = projects.filter(
     (project) => project.hasCaseStudy === false,
@@ -143,6 +139,40 @@ function getReferenceBody() {
       })}</div>`,
     );
   });
+
+  let cardIndex = 0;
+  homepage = homepage.replace(
+    /<article\s+class="project(?: featured)? reveal"[\s\S]*?<\/article>/g,
+    (card) => {
+      const project = projects[cardIndex++];
+      if (!project) return card;
+      const chips = `<div class="pills">${(
+        project.cardTechnologies ?? project.technologies.slice(0, 6)
+      )
+        .map(
+          (technology) =>
+            `<span class="pill">${escapeAttribute(technology)}</span>`,
+        )
+        .join("")}</div>`;
+      return card
+        .replace(/\s*<div class="pills">[\s\S]*?<\/div>/, "")
+        .replace(/<button class="mini case"[\s\S]*?<\/button\s*>/, "")
+        .replace(/(<div class="visual">[\s\S]*?<\/div>)/, `$1${chips}`)
+        .replace(
+          '<div class="project-links">',
+          `<div class="project-links"><button class="mini case" type="button" data-case-study-slug="${escapeAttribute(project.slug)}">Case study</button>`,
+        )
+        .replace(
+          /(<article\s+class="project(?: featured)? reveal")/,
+          `$1 data-project-slug="${escapeAttribute(project.slug)}"`,
+        );
+    },
+  );
+
+  homepage = homepage.replace(
+    /\s*<div\s+id="caseModal"[\s\S]*?<\/div>\s*<\/div>\s*(?=<div id="error404">)/,
+    "",
+  );
 
   let testimonialIndex = 0;
   homepage = homepage.replace(
@@ -253,6 +283,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: getReferenceBody() }}
       />
       <EmailJsContactBridge />
+      <ProjectCaseStudyModal />
       <Script src="/reference-runtime.js" strategy="afterInteractive" />
     </>
   );

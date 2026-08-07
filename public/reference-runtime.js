@@ -186,7 +186,6 @@
         }
         if (e.key === "Escape") {
           closePal();
-          $("#caseModal").classList.remove("open");
           $("#error404").classList.remove("show");
         }
         if (
@@ -223,14 +222,6 @@
             closePal();
           }),
       );
-      $$(".case").forEach(
-        (b) => (b.onclick = () => $("#caseModal").classList.add("open")),
-      );
-      $(".close").onclick = () => $("#caseModal").classList.remove("open");
-      $("#caseModal").onclick = (e) => {
-        if (e.target.id === "caseModal")
-          e.currentTarget.classList.remove("open");
-      };
       for (let i = 0; i < 286; i++) {
         const x = document.createElement("i");
         $("#heat").appendChild(x);

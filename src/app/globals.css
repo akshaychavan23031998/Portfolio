@@ -1044,15 +1044,19 @@ a {
   flex-wrap: wrap;
   gap: 8px;
 }
-.card-links a {
+.card-links a,
+.card-links button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
   padding: 7px 9px;
   border-radius: 8px;
   text-decoration: none;
   font-size: 12px;
+  cursor: pointer;
 }
 .lab-grid,
 .signals {

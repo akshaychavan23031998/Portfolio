@@ -41,8 +41,8 @@ test("homepage preserves the reference structure and interactions", async ({
   });
   await expect(matchEngineCard).toHaveCount(1);
   await expect(
-    matchEngineCard.getByRole("link", { name: /case study/i }),
-  ).toHaveCount(0);
+    matchEngineCard.getByRole("button", { name: /case study/i }),
+  ).toHaveAttribute("data-case-study-slug", "three-way-match-engine");
   await expect(
     matchEngineCard.getByRole("link", { name: /source code/i }),
   ).toHaveAttribute(
@@ -61,8 +61,8 @@ test("homepage preserves the reference structure and interactions", async ({
   });
   await expect(pipelineCard).toHaveCount(1);
   await expect(
-    pipelineCard.getByRole("link", { name: /case study/i }),
-  ).toHaveCount(0);
+    pipelineCard.getByRole("button", { name: /case study/i }),
+  ).toHaveAttribute("data-case-study-slug", "pipeline-builder");
   await expect(
     pipelineCard.getByRole("link", { name: /source code/i }),
   ).toHaveAttribute(
@@ -73,12 +73,12 @@ test("homepage preserves the reference structure and interactions", async ({
     pipelineCard.getByRole("link", { name: /live application/i }),
   ).toHaveAttribute("href", "https://vector-shift-alpha.vercel.app/");
   await expect(pipelineCard.locator(".project-links a")).toHaveCount(2);
-  for (const card of [
-    page.locator(".project.featured").first(),
-    matchEngineCard,
-    pipelineCard,
-  ]) {
-    await expect(card.locator(".pills")).toHaveCount(0);
+  await expect(page.locator(".project > .pills")).toHaveCount(11);
+  await expect(page.locator(".project .case")).toHaveCount(11);
+  for (const card of await page.locator(".project").all()) {
+    const chips = card.locator(":scope > .pills .pill");
+    expect(await chips.count()).toBeGreaterThan(0);
+    expect(await chips.count()).toBeLessThanOrEqual(6);
   }
   await expect(page.locator(".project.featured .placeholder")).toContainText(
     "Auth",
@@ -290,18 +290,136 @@ test("project routes, resume, and not-found route remain available", async ({
   ).toBeTruthy();
 });
 
-test("Rabbit case study still opens its modal without changing history", async ({
+test("all project case studies share one modal without changing history", async ({
   page,
 }) => {
   await page.goto("/");
   await page.waitForTimeout(1900);
   const initialUrl = page.url();
-  await page.locator(".project.featured .case").click();
-  await expect(page.locator("#caseModal")).toHaveClass(/open/);
-  expect(page.url()).toBe(initialUrl);
+  const cases = page.locator(".project .case");
+  await expect(cases).toHaveCount(11);
+  for (let index = 0; index < 11; index += 1) {
+    const trigger = cases.nth(index);
+    const slug = await trigger.getAttribute("data-case-study-slug");
+    await trigger.click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(page.locator("#caseModal")).toHaveCount(1);
+    await expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(
+      await dialog.getByRole("heading").first().textContent(),
+    ).toBeTruthy();
+    expect(page.url()).toBe(initialUrl);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    expect(page.url()).toBe(initialUrl);
+    expect(slug).toBeTruthy();
+  }
+});
+
+test("case-study modal owns scrolling and restores the background", async ({
+  page,
+  isMobile,
+}) => {
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+  await page.waitForTimeout(1900);
+
+  const trigger = page.locator(
+    '.project .case[data-case-study-slug="rabbit-ecommerce"]',
+  );
+  await trigger.scrollIntoViewIfNeeded();
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  await trigger.click();
+
+  const dialog = page.getByRole("dialog");
+  const scrollArea = dialog.locator(".case-study-scroll");
+  await expect(dialog).toBeVisible();
+  await expect(scrollArea).toHaveCount(1);
+  await expect(page.locator("body")).toHaveCSS("position", "fixed");
+  await expect(page.locator("html")).toHaveCSS("overflow", "hidden");
+  if (!isMobile) {
+    await expect(page.locator("html")).toHaveAttribute("data-scroll-paused");
+  }
+  const effectiveBackgroundPosition = () =>
+    page.evaluate(() => {
+      if (getComputedStyle(document.body).position === "fixed") {
+        return Math.abs(Number.parseFloat(document.body.style.top) || 0);
+      }
+      return window.scrollY;
+    });
+  const lockedBackgroundPosition = await effectiveBackgroundPosition();
+  expect(lockedBackgroundPosition).toBeGreaterThan(0);
+  expect(
+    await scrollArea.evaluate((element) => ({
+      overflowY: getComputedStyle(element).overflowY,
+      bounded: element.clientHeight < element.scrollHeight,
+      touchAction: getComputedStyle(element).touchAction,
+    })),
+  ).toMatchObject({ overflowY: "auto", bounded: true, touchAction: "pan-y" });
+
+  if (isMobile) {
+    const box = await scrollArea.boundingBox();
+    expect(box).not.toBeNull();
+    const session = await page.context().newCDPSession(page);
+    const x = box!.x + box!.width / 2;
+    const startY = box!.y + box!.height * 0.75;
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ x, y: startY }],
+    });
+    for (const distance of [80, 160, 240, 320]) {
+      await session.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{ x, y: startY - distance }],
+      });
+    }
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchEnd",
+      touchPoints: [],
+    });
+    await session.detach();
+  } else {
+    await scrollArea.hover();
+    await page.mouse.wheel(0, 650);
+  }
+  await expect
+    .poll(() => scrollArea.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0);
+  await expect(scrollArea).toHaveClass(/is-modal-scrolling/);
+  expect(await effectiveBackgroundPosition()).toBe(lockedBackgroundPosition);
+
+  await scrollArea.focus();
+  await page.keyboard.press("Home");
+  await expect
+    .poll(() => scrollArea.evaluate((element) => element.scrollTop))
+    .toBe(0);
+  await page.keyboard.press("PageDown");
+  await expect
+    .poll(() => scrollArea.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0);
+  await page.keyboard.press("End");
+  await expect
+    .poll(() => scrollArea.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0);
+  expect(await effectiveBackgroundPosition()).toBe(lockedBackgroundPosition);
+
+  await expect(scrollArea).not.toHaveClass(/is-modal-scrolling/, {
+    timeout: 1200,
+  });
   await page.keyboard.press("Escape");
-  await expect(page.locator("#caseModal")).not.toHaveClass(/open/);
-  expect(page.url()).toBe(initialUrl);
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  expect(await page.evaluate(() => window.scrollY)).toBe(
+    lockedBackgroundPosition,
+  );
+  await expect(page.locator("html")).not.toHaveAttribute("data-scroll-paused");
+  expect(errors).toEqual([]);
 });
 
 test("reference source remains present and untouched by runtime", async () => {

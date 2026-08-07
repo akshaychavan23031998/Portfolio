@@ -7,6 +7,7 @@ const scrollMocks = vi.hoisted(() => ({
   destroy: vi.fn(),
   raf: vi.fn(),
   scrollTo: vi.fn(),
+  resize: vi.fn(),
   start: vi.fn(),
   stop: vi.fn(),
 }));
@@ -18,6 +19,7 @@ class MockLocomotiveScroll {
   destroy = scrollMocks.destroy;
   raf = scrollMocks.raf;
   scrollTo = scrollMocks.scrollTo;
+  resize = scrollMocks.resize;
   start = scrollMocks.start;
   stop = scrollMocks.stop;
 }
@@ -122,6 +124,38 @@ describe("SmoothScrollProvider", () => {
     expect(window.location.hash).toBe("#contact");
     expect(scrollMocks.scrollTo).toHaveBeenCalledWith(target, { offset: -90 });
     target.remove();
+  });
+
+  it("pauses and resumes the existing instance for a modal lock", async () => {
+    mockMedia({ finePointer: true, reducedMotion: false });
+    render(
+      <SmoothScrollProvider loadScroll={loadScroll}>
+        <main>content</main>
+      </SmoothScrollProvider>,
+    );
+    await waitFor(() => expect(scrollMocks.instances).toBe(1));
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("portfolio:modal-scroll-lock", {
+          detail: { locked: true },
+        }),
+      );
+    });
+    expect(scrollMocks.stop).toHaveBeenCalledOnce();
+    expect(document.documentElement).toHaveAttribute("data-scroll-paused");
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("portfolio:modal-scroll-lock", {
+          detail: { locked: false },
+        }),
+      );
+    });
+    expect(scrollMocks.start).toHaveBeenCalledOnce();
+    expect(scrollMocks.resize).toHaveBeenCalledOnce();
+    expect(document.documentElement).not.toHaveAttribute("data-scroll-paused");
+    expect(scrollMocks.instances).toBe(1);
   });
 
   it("does not add scrollbar state, listeners, or timers", () => {

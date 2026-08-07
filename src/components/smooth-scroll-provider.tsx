@@ -10,6 +10,10 @@ type HashNavigationDetail = {
   hash?: string;
 };
 
+type ModalScrollLockDetail = {
+  locked?: boolean;
+};
+
 type ScrollLoader = () => Promise<{ default: typeof LocomotiveScroll }>;
 
 const loadBrowserScroll: ScrollLoader = () => import("locomotive-scroll");
@@ -28,6 +32,7 @@ export function SmoothScrollProvider({
     const desktopPointer = window.matchMedia(desktopPointerQuery);
     const reducedMotion = window.matchMedia(reducedMotionQuery);
     let disposed = false;
+    let modalLocked = false;
 
     const scrollToHash = (hash: string) => {
       if (!hash.startsWith("#")) return;
@@ -47,18 +52,37 @@ export function SmoothScrollProvider({
       if (hash) scrollToHash(hash);
     };
 
+    const onModalScrollLock = (event: Event) => {
+      modalLocked = Boolean(
+        (event as CustomEvent<ModalScrollLockDetail>).detail?.locked,
+      );
+      root.toggleAttribute("data-scroll-paused", modalLocked);
+      if (!instanceRef.current) return;
+      if (modalLocked) instanceRef.current.stop();
+      else if (!document.hidden) {
+        instanceRef.current.start();
+        instanceRef.current.resize();
+      }
+    };
+
     window.addEventListener("portfolio:navigate-hash", onHashNavigation);
+    window.addEventListener("portfolio:modal-scroll-lock", onModalScrollLock);
 
     if (!desktopPointer.matches || reducedMotion.matches) {
       root.dataset.scrollEngine = "native";
       return () => {
         window.removeEventListener("portfolio:navigate-hash", onHashNavigation);
+        window.removeEventListener(
+          "portfolio:modal-scroll-lock",
+          onModalScrollLock,
+        );
+        root.removeAttribute("data-scroll-paused");
         delete root.dataset.scrollEngine;
       };
     }
 
     const onVisibilityChange = () => {
-      if (document.hidden) {
+      if (document.hidden || modalLocked) {
         instanceRef.current?.stop();
       } else {
         instanceRef.current?.start();
@@ -89,8 +113,13 @@ export function SmoothScrollProvider({
       disposed = true;
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("portfolio:navigate-hash", onHashNavigation);
+      window.removeEventListener(
+        "portfolio:modal-scroll-lock",
+        onModalScrollLock,
+      );
       instanceRef.current?.destroy();
       instanceRef.current = null;
+      root.removeAttribute("data-scroll-paused");
       delete root.dataset.scrollEngine;
     };
   }, [loadScroll]);
