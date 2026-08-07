@@ -1842,6 +1842,20 @@ main {
   .site-footer {
     padding-bottom: 28px;
   }
+  .project[data-project-slug="rabbit-ecommerce"] .project-meta {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .project[data-project-slug="rabbit-ecommerce"] .placeholder,
+  .project[data-project-slug="rabbit-ecommerce"] .project-links {
+    width: 100%;
+  }
+  .project[data-project-slug="rabbit-ecommerce"] .project-links {
+    justify-content: flex-start;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
 }
 @media (max-width: 430px) {
   .wrap {

@@ -318,6 +318,66 @@ test("all project case studies share one modal without changing history", async 
   }
 });
 
+test("Rabbit alone uses a single-column mobile footer", async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto("/");
+  await page.waitForTimeout(1900);
+  const rabbit = page.locator('.project[data-project-slug="rabbit-ecommerce"]');
+  const meta = rabbit.locator(".project-meta");
+  const feature = rabbit.locator(".placeholder");
+  const actions = rabbit.locator(".project-links");
+
+  await expect(feature).toHaveText("Auth · Payments · Orders · Admin");
+  await expect(
+    actions.getByRole("button", { name: "Case study" }),
+  ).toBeVisible();
+  await expect(actions.getByRole("link", { name: /Code/i })).toHaveAttribute(
+    "href",
+    "https://github.com/akshaychavan23031998/MERN_Rabbit_Ecommerce",
+  );
+  await expect(actions.getByRole("link", { name: /Live/i })).toHaveAttribute(
+    "href",
+    "https://mern-rabbit-ecommerce-7e9j.vercel.app/",
+  );
+
+  const layout = await meta.evaluate((element) => {
+    const featureElement = element.querySelector<HTMLElement>(".placeholder")!;
+    const actionElement = element.querySelector<HTMLElement>(".project-links")!;
+    const featureBox = featureElement.getBoundingClientRect();
+    const actionBox = actionElement.getBoundingClientRect();
+    const actionStyle = getComputedStyle(actionElement);
+    return {
+      direction: getComputedStyle(element).flexDirection,
+      featureAboveActions: featureBox.bottom <= actionBox.top,
+      featureWidth: featureBox.width,
+      metaWidth: element.getBoundingClientRect().width,
+      actionJustify: actionStyle.justifyContent,
+      actionWrap: actionStyle.flexWrap,
+    };
+  });
+
+  if (isMobile) {
+    expect(layout.direction).toBe("column");
+    expect(layout.featureAboveActions).toBe(true);
+    expect(layout.featureWidth).toBeCloseTo(layout.metaWidth, 0);
+    expect(layout.actionJustify).toBe("flex-start");
+    expect(layout.actionWrap).toBe("wrap");
+  } else {
+    expect(layout.direction).toBe("row");
+  }
+
+  await actions.getByRole("button", { name: "Case study" }).click();
+  await expect(page.getByRole("dialog", { name: /Rabbit/i })).toBeVisible();
+  await page.keyboard.press("Escape");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - innerWidth,
+    ),
+  ).toBeLessThanOrEqual(1);
+});
+
 test("case-study modal owns scrolling and restores the background", async ({
   page,
   isMobile,
