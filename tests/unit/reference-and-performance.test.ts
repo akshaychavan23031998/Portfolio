@@ -88,7 +88,7 @@ test("local assets and résumé configuration are centralized", () => {
     readFileSync("src/components/command-palette.tsx", "utf8"),
   ].join("\n");
 
-  expect(projects.match(/\/images\/projects\//g)).toHaveLength(11);
+  expect(projects.match(/\/images\/projects\//g)).toHaveLength(12);
   expect(testimonials.match(/\/images\/testimonials\//g)).toHaveLength(4);
   expect(site).toContain('resume: "/resume/akshay-ram-chavan-resume.pdf"');
   expect(site).toContain('resumeDownloadName: "Akshay-Ram-Chavan-Resume.pdf"');

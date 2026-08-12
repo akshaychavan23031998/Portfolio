@@ -206,7 +206,9 @@ export function ProjectCaseStudyModal() {
           tabIndex={0}
           onScroll={handleModalScroll}
         >
-          <p className="case-summary">{project.description}</p>
+          <p className="case-summary">
+            {caseStudy?.summary ?? project.description}
+          </p>
           {caseStudy?.problem && (
             <section>
               <h4>Problem</h4>
@@ -219,6 +221,21 @@ export function ProjectCaseStudyModal() {
               <p>{caseStudy.solution}</p>
             </section>
           )}
+          {caseStudy?.architecture && (
+            <section>
+              <h4>Architecture</h4>
+              <p>{caseStudy.architecture}</p>
+              {caseStudy.architectureNote && (
+                <p>{caseStudy.architectureNote}</p>
+              )}
+            </section>
+          )}
+          {caseStudy?.datasetMetrics && (
+            <section>
+              <h4>Verified dataset</h4>
+              <p>{caseStudy.datasetMetrics}</p>
+            </section>
+          )}
           {caseStudy?.features?.length ? (
             <section>
               <h4>Key features</h4>
@@ -229,6 +246,18 @@ export function ProjectCaseStudyModal() {
               </ul>
             </section>
           ) : null}
+          {caseStudy?.graphModel && (
+            <section>
+              <h4>Graph model</h4>
+              <p>
+                <strong>Nodes:</strong> {caseStudy.graphModel.nodes.join(", ")}
+              </p>
+              <p>
+                <strong>Relationships:</strong>{" "}
+                {caseStudy.graphModel.relationships.join(", ")}
+              </p>
+            </section>
+          )}
           {caseStudy?.engineeringFocus?.length ? (
             <section>
               <h4>Engineering focus</h4>
@@ -253,6 +282,42 @@ export function ProjectCaseStudyModal() {
             <section>
               <h4>Result / learning</h4>
               <p>{caseStudy.result}</p>
+            </section>
+          )}
+          {caseStudy?.decisionLog && (
+            <section
+              className="decision-log"
+              aria-labelledby={`${titleId}-decision-log`}
+            >
+              <h4 id={`${titleId}-decision-log`}>Decision log</h4>
+              <dl>
+                <div>
+                  <dt>Key decision</dt>
+                  <dd>{caseStudy.decisionLog.keyDecision}</dd>
+                </div>
+                <div>
+                  <dt>Alternative considered</dt>
+                  <dd>{caseStudy.decisionLog.alternativeConsidered}</dd>
+                </div>
+                <div>
+                  <dt>Why rejected</dt>
+                  <dd>{caseStudy.decisionLog.whyRejected}</dd>
+                </div>
+                <div>
+                  <dt>Failure modes</dt>
+                  <dd>
+                    <ul>
+                      {caseStudy.decisionLog.failureModes.map((mode) => (
+                        <li key={mode}>{mode}</li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Next iteration</dt>
+                  <dd>{caseStudy.decisionLog.nextIteration}</dd>
+                </div>
+              </dl>
             </section>
           )}
           <div className="case-actions">

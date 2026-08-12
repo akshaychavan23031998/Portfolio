@@ -55,6 +55,40 @@ describe("Project filters", () => {
     }
   });
 
+  it("renders TraceGraph in Full Stack and Backend but not AI", async () => {
+    render(<ProjectGrid />);
+    for (const category of ["Full Stack", "Backend"]) {
+      fireEvent.click(screen.getByRole("button", { name: category }));
+      expect(screen.getByText("TraceGraph")).toBeInTheDocument();
+    }
+    fireEvent.click(screen.getByRole("button", { name: "AI" }));
+    await waitFor(() =>
+      expect(screen.queryByText("TraceGraph")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("renders TraceGraph chips and its shared-modal actions", () => {
+    render(<ProjectGrid />);
+    const card = screen.getByText("TraceGraph").closest("article");
+    expect(card).not.toBeNull();
+    expect(
+      within(card as HTMLElement).getByText("CognoDB"),
+    ).toBeInTheDocument();
+    expect(
+      within(card as HTMLElement).getByText("openCypher"),
+    ).toBeInTheDocument();
+    expect(
+      within(card as HTMLElement).getByText("React Flow"),
+    ).toBeInTheDocument();
+    expect(
+      within(card as HTMLElement).getByText("Neo4j Driver"),
+    ).toBeInTheDocument();
+    expect(
+      within(card as HTMLElement).getByRole("button", { name: "Case study" }),
+    ).toHaveAttribute("data-case-study-slug", "tracegraph");
+    expect(within(card as HTMLElement).getAllByRole("link")).toHaveLength(2);
+  });
+
   it("renders Case study, Code, and Live for Three-Way Match Engine", () => {
     render(<ProjectGrid />);
     const card = screen.getByText("Three-Way Match Engine").closest("article");

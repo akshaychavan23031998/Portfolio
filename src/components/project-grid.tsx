@@ -7,6 +7,10 @@ import { CodeXml, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { projectCategories, projects } from "@/data/projects";
 
+function cardTechnologyLabel(technology: string) {
+  return technology === "Neo4j JavaScript Driver" ? "Neo4j Driver" : technology;
+}
+
 export function ProjectGrid() {
   const [filter, setFilter] =
     useState<(typeof projectCategories)[number]>("All");
@@ -88,7 +92,7 @@ export function ProjectGrid() {
                   )
                     .slice(0, 6)
                     .map((tag) => (
-                      <span key={tag}>{tag}</span>
+                      <span key={tag}>{cardTechnologyLabel(tag)}</span>
                     ))}
                 </div>
                 <div className="card-links">

@@ -131,4 +131,27 @@ describe("ProjectCaseStudyModal", () => {
     expect(window.location.href).toBe(initialUrl);
     trigger.remove();
   });
+
+  it("renders verified TraceGraph content in the shared modal", async () => {
+    const trigger = document.createElement("button");
+    trigger.dataset.caseStudySlug = "tracegraph";
+    document.body.appendChild(trigger);
+    render(<ProjectCaseStudyModal />);
+    fireEvent.click(trigger);
+
+    expect(
+      await screen.findByRole("dialog", { name: "TraceGraph" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/96 nodes/)).toBeInTheDocument();
+    expect(screen.getByText(/Neo4j Driver → CognoDB/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Graph model" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Decision log" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/^Future improvements:/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(/Wexa|assignment|take-home/i);
+    trigger.remove();
+  });
 });

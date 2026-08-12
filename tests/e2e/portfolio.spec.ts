@@ -35,7 +35,7 @@ test("homepage preserves the reference structure and interactions", async ({
     "Ship / Measure",
   ]);
   await expect(page.locator(".ring .sat")).toHaveCount(2);
-  await expect(page.locator(".project")).toHaveCount(11);
+  await expect(page.locator(".project")).toHaveCount(12);
   const matchEngineCard = page.locator(".project", {
     hasText: "Three-Way Match Engine",
   });
@@ -56,6 +56,31 @@ test("homepage preserves the reference structure and interactions", async ({
   await expect(
     page.locator('a[href="/projects/three-way-match-engine"]'),
   ).toHaveCount(0);
+  const traceGraphCard = page.locator(".project", { hasText: "TraceGraph" });
+  await expect(traceGraphCard).toHaveCount(1);
+  await expect(
+    traceGraphCard.getByRole("button", { name: /case study/i }),
+  ).toHaveAttribute("data-case-study-slug", "tracegraph");
+  await expect(traceGraphCard.locator(".pills .pill")).toHaveText([
+    "Next.js",
+    "TypeScript",
+    "CognoDB",
+    "openCypher",
+    "Neo4j Driver",
+    "React Flow",
+  ]);
+  await expect(
+    traceGraphCard.getByRole("link", { name: /source code/i }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/akshaychavan23031998/TraceGraph-Software-Incident-Dependency-Intelligence",
+  );
+  await expect(
+    traceGraphCard.getByRole("link", { name: /live application/i }),
+  ).toHaveAttribute(
+    "href",
+    "https://trace-graph-software-incident-depen.vercel.app/",
+  );
   const pipelineCard = page.locator(".project", {
     hasText: "Pipeline Builder",
   });
@@ -73,8 +98,8 @@ test("homepage preserves the reference structure and interactions", async ({
     pipelineCard.getByRole("link", { name: /live application/i }),
   ).toHaveAttribute("href", "https://vector-shift-alpha.vercel.app/");
   await expect(pipelineCard.locator(".project-links a")).toHaveCount(2);
-  await expect(page.locator(".project > .pills")).toHaveCount(11);
-  await expect(page.locator(".project .case")).toHaveCount(11);
+  await expect(page.locator(".project > .pills")).toHaveCount(12);
+  await expect(page.locator(".project .case")).toHaveCount(12);
   for (const card of await page.locator(".project").all()) {
     const chips = card.locator(":scope > .pills .pill");
     expect(await chips.count()).toBeGreaterThan(0);
@@ -113,14 +138,17 @@ test("homepage preserves the reference structure and interactions", async ({
   await expect(
     page.locator(".project:not(.hidden)", { hasText: "Pipeline Builder" }),
   ).toHaveCount(0);
+  await expect(
+    page.locator(".project:not(.hidden)", { hasText: "TraceGraph" }),
+  ).toHaveCount(0);
   await page.locator('.filter[data-filter="fullstack"]').click();
-  await expect(page.locator(".project:not(.hidden)")).toHaveCount(5);
+  await expect(page.locator(".project:not(.hidden)")).toHaveCount(6);
   await page.locator('.filter[data-filter="frontend"]').click();
   await expect(page.locator(".project:not(.hidden)")).toHaveCount(7);
   await page.locator('.filter[data-filter="backend"]').click();
-  await expect(page.locator(".project:not(.hidden)")).toHaveCount(5);
+  await expect(page.locator(".project:not(.hidden)")).toHaveCount(6);
   await page.locator('.filter[data-filter="all"]').click();
-  await expect(page.locator(".project:not(.hidden)")).toHaveCount(11);
+  await expect(page.locator(".project:not(.hidden)")).toHaveCount(12);
 
   expect(
     await page.evaluate(
@@ -282,9 +310,11 @@ test("project routes, resume, and not-found route remain available", async ({
     404,
   );
   expect((await page.goto("/projects/pipeline-builder"))?.status()).toBe(404);
+  expect((await page.goto("/projects/tracegraph"))?.status()).toBe(404);
   const sitemap = await (await page.request.get("/sitemap.xml")).text();
   expect(sitemap).not.toContain("/projects/three-way-match-engine");
   expect(sitemap).not.toContain("/projects/pipeline-builder");
+  expect(sitemap).not.toContain("/projects/tracegraph");
   expect(
     (await page.request.get("/resume/akshay-ram-chavan-resume.pdf")).ok(),
   ).toBeTruthy();
@@ -297,8 +327,8 @@ test("all project case studies share one modal without changing history", async 
   await page.waitForTimeout(1900);
   const initialUrl = page.url();
   const cases = page.locator(".project .case");
-  await expect(cases).toHaveCount(11);
-  for (let index = 0; index < 11; index += 1) {
+  await expect(cases).toHaveCount(12);
+  for (let index = 0; index < 12; index += 1) {
     const trigger = cases.nth(index);
     const slug = await trigger.getAttribute("data-case-study-slug");
     await trigger.click();
@@ -643,6 +673,7 @@ test("local images, résumé download, and ticker alignment are correct", async 
   const projectPaths = [
     "/images/projects/rabbit-ecommerce.png",
     "/images/projects/three-way-engine.png",
+    "/images/projects/tracegraph.png",
     "/images/projects/pipeline-builder.png",
     "/images/projects/ai-quick-blog.png",
     "/images/projects/quick-chat.png",
@@ -663,7 +694,7 @@ test("local images, résumé download, and ticker alignment are correct", async 
   await page.waitForTimeout(1900);
 
   const projectImages = page.locator(".project .visual img");
-  await expect(projectImages).toHaveCount(11);
+  await expect(projectImages).toHaveCount(12);
   for (const [index, assetPath] of projectPaths.entries()) {
     await expect(projectImages.nth(index)).toHaveAttribute(
       "src",
@@ -837,11 +868,13 @@ test("profile, actions, skills, domains, and full-width project media are correc
         };
       }),
     );
-  expect(mediaResults).toHaveLength(11);
+  expect(mediaResults).toHaveLength(12);
   for (const [index, media] of mediaResults.entries()) {
     expect(media.widthDelta).toBeLessThanOrEqual(2);
     expect(media.maxWidth).toBe("none");
-    expect(media.objectFit).toBe([1, 2].includes(index) ? "contain" : "cover");
+    expect(media.objectFit).toBe(
+      [1, 2, 3].includes(index) ? "contain" : "cover",
+    );
     expect(media.aspectRatio).toBeGreaterThan(1);
   }
 

@@ -4,6 +4,7 @@ import { caseStudyProjects, projects } from "@/data/projects";
 const expectedOrder = [
   "rabbit-ecommerce",
   "three-way-match-engine",
+  "tracegraph",
   "pipeline-builder",
   "ai-quick-blog",
   "quick-chat",
@@ -90,11 +91,60 @@ test("the Pipeline Builder image is used directly without a duplicate", () => {
   ).toEqual(["pipeline-builder.png"]);
 });
 
+test("TraceGraph uses its verified modal-only project data", () => {
+  const matches = projects.filter((project) => project.slug === "tracegraph");
+  expect(matches).toHaveLength(1);
+  expect(matches[0]).toMatchObject({
+    title: "TraceGraph",
+    label: "GRAPH OPERATIONS INTELLIGENCE",
+    hasCaseStudy: false,
+    categories: ["Full Stack", "Backend"],
+    cardTechnologies: [
+      "Next.js",
+      "TypeScript",
+      "CognoDB",
+      "openCypher",
+      "Neo4j JavaScript Driver",
+      "React Flow",
+    ],
+    technologies: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "CognoDB",
+      "openCypher",
+      "Neo4j JavaScript Driver",
+      "React Flow",
+      "Vercel",
+    ],
+    github:
+      "https://github.com/akshaychavan23031998/TraceGraph-Software-Incident-Dependency-Intelligence",
+    live: "https://trace-graph-software-incident-depen.vercel.app/",
+    image: "/images/projects/tracegraph.png",
+    imageFit: "contain",
+  });
+  expect(matches[0].categories).not.toContain("AI");
+  expect(matches[0].caseStudy?.decisionLog?.nextIteration).toMatch(
+    /^Future improvements:/,
+  );
+  expect(caseStudyProjects).not.toContain(matches[0]);
+});
+
+test("the TraceGraph image is used directly without a duplicate", () => {
+  expect(existsSync("public/images/projects/tracegraph.png")).toBe(true);
+  expect(
+    readdirSync("public/images/projects").filter((file) =>
+      file.startsWith("tracegraph"),
+    ),
+  ).toEqual(["tracegraph.png"]);
+});
+
 test("project order and uniqueness are preserved around the insertion", () => {
-  expect(projects).toHaveLength(11);
+  expect(projects).toHaveLength(12);
   expect(projects.map((project) => project.slug)).toEqual(expectedOrder);
-  expect(new Set(projects.map((project) => project.slug)).size).toBe(11);
-  expect(new Set(projects.map((project) => project.title)).size).toBe(11);
+  expect(new Set(projects.map((project) => project.slug)).size).toBe(12);
+  expect(new Set(projects.map((project) => project.title)).size).toBe(12);
 });
 
 test("technology metadata remains intact while all card chips are enabled", () => {

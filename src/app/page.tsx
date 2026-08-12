@@ -18,6 +18,10 @@ function escapeAttribute(value: string) {
     .replaceAll(">", "&gt;");
 }
 
+function cardTechnologyLabel(technology: string) {
+  return technology === "Neo4j JavaScript Driver" ? "Neo4j Driver" : technology;
+}
+
 function optimizedImage({
   src,
   alt,
@@ -61,7 +65,7 @@ function referenceProjectCard(project: (typeof projects)[number]) {
   )
     .map(
       (technology) =>
-        `<span class="pill">${escapeAttribute(technology)}</span>`,
+        `<span class="pill">${escapeAttribute(cardTechnologyLabel(technology))}</span>`,
     )
     .join("")}</div>`;
 
@@ -151,7 +155,7 @@ function getReferenceBody() {
       )
         .map(
           (technology) =>
-            `<span class="pill">${escapeAttribute(technology)}</span>`,
+            `<span class="pill">${escapeAttribute(cardTechnologyLabel(technology))}</span>`,
         )
         .join("")}</div>`;
       return card

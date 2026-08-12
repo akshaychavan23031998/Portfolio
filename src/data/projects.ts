@@ -6,11 +6,26 @@ export type Project = {
   showTechnologiesOnCard?: boolean;
   cardTechnologies?: string[];
   caseStudy?: {
+    summary?: string;
     problem?: string;
     solution?: string;
+    architecture?: string;
+    architectureNote?: string;
+    datasetMetrics?: string;
+    graphModel?: {
+      nodes: string[];
+      relationships: string[];
+    };
     features?: string[];
     engineeringFocus?: string[];
     result?: string;
+    decisionLog?: {
+      keyDecision: string;
+      alternativeConsidered: string;
+      whyRejected: string;
+      failureModes: string[];
+      nextIteration: string;
+    };
   };
   categories: string[];
   technologies: string[];
@@ -117,6 +132,121 @@ export const projects: Project[] = [
       "An AI-enabled finance and procurement reconciliation system that compares Purchase Orders, Goods Received Notes, and Invoices to classify records as matched, partially matched, mismatched, or pending.",
     image: "/images/projects/three-way-engine.png",
     imageAlt: "Three-Way Match Engine purchase order summary dashboard",
+    imageFit: "contain",
+  },
+  {
+    title: "TraceGraph",
+    slug: "tracegraph",
+    label: "GRAPH OPERATIONS INTELLIGENCE",
+    hasCaseStudy: false,
+    showTechnologiesOnCard: true,
+    cardTechnologies: [
+      "Next.js",
+      "TypeScript",
+      "CognoDB",
+      "openCypher",
+      "Neo4j JavaScript Driver",
+      "React Flow",
+    ],
+    caseStudy: {
+      summary:
+        "TraceGraph models services, incidents, engineers, teams, deployments, customers, and runbooks as a connected operational graph so relationship-heavy operational questions can be explored through graph traversal.",
+      problem:
+        "Production incidents rarely involve a single isolated service. Engineers need to understand dependency chains, blast radius, ownership, deployment context, resolver history, and relevant runbooks across multiple connected entities.",
+      solution:
+        "TraceGraph uses Next.js and React for the application layer, typed API Route Handlers for the HTTP boundary, a service and repository layer for backend logic, the official Neo4j JavaScript driver for Bolt connectivity, and CognoDB with openCypher for graph traversal.",
+      architecture:
+        "React / Next.js UI → Next.js API Routes → Service Layer → Repository Layer → Neo4j Driver → CognoDB",
+      architectureNote:
+        "The browser never communicates directly with CognoDB. Database credentials and graph queries remain server-side.",
+      datasetMetrics:
+        "96 nodes · 196 relationships · 20 services · 44 dependency edges",
+      graphModel: {
+        nodes: [
+          "Service",
+          "Team",
+          "Engineer",
+          "Incident",
+          "Deployment",
+          "Customer",
+          "Runbook",
+        ],
+        relationships: [
+          "DEPENDS_ON",
+          "OWNS",
+          "MEMBER_OF",
+          "DEPLOYED_TO",
+          "TRIGGERED",
+          "AFFECTED",
+          "RESOLVED",
+          "USES",
+          "HAS_RUNBOOK",
+        ],
+      },
+      features: [
+        "Operations Overview",
+        "Service Explorer with direct dependencies, dependents, and multi-hop traversal",
+        "Blast-radius analysis",
+        "Incident Investigation with deployment-to-incident context",
+        "Expert Finder with resolver history and runbook mapping",
+        "Shortest dependency path",
+        "Interactive topology",
+        "Search, filtering, and safe loading, empty, and error states",
+      ],
+      engineeringFocus: [
+        "Graph-native domain modeling",
+        "Parameterized openCypher queries",
+        "Bounded graph traversal",
+        "Reverse dependency traversal",
+        "Shortest-path discovery",
+        "Repository-based data access",
+        "Typed API boundaries",
+        "Database failure handling",
+        "Interactive topology UX",
+      ],
+      result:
+        "The key engineering insight is that graph databases become valuable when the important questions are about relationships and traversal rather than isolated rows. Dependency paths, blast radius, and resolver discovery map naturally to a graph model.",
+      decisionLog: {
+        keyDecision:
+          "Model operational context as a connected graph rather than treating services, incidents, engineers, deployments, teams, customers, and runbooks as isolated records.",
+        alternativeConsidered:
+          "A relational schema with join tables for dependencies, incident-service links, ownership, deployments, and resolver history.",
+        whyRejected:
+          "Direct relational lookups would work, but multi-hop dependency traversal, reverse blast radius, shortest paths, and resolver discovery would require recursive SQL or increasingly complex joins. These are the core questions TraceGraph is designed to answer.",
+        failureModes: [
+          "Graph database unavailable",
+          "Service not found",
+          "Incident not found",
+          "Invalid traversal depth",
+          "Malformed identifiers",
+          "Empty traversal results",
+          "Database or API failure",
+          "Unsafe query construction",
+        ],
+        nextIteration:
+          "Future improvements: historical dependency snapshots, real-time event ingestion, deployment-risk scoring, customer-impact scoring, AI-assisted incident investigation, and graph anomaly detection.",
+      },
+    },
+    categories: ["Full Stack", "Backend"],
+    technologies: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "CognoDB",
+      "openCypher",
+      "Neo4j JavaScript Driver",
+      "React Flow",
+      "Vercel",
+    ],
+    github:
+      "https://github.com/akshaychavan23031998/TraceGraph-Software-Incident-Dependency-Intelligence",
+    live: "https://trace-graph-software-incident-depen.vercel.app/",
+    description:
+      "Graph-powered software operations intelligence for exploring service dependencies, investigating incidents, tracing blast radius, finding dependency paths, and discovering relevant incident responders.",
+    image: "/images/projects/tracegraph.png",
+    imageAlt:
+      "TraceGraph software incident and dependency intelligence dashboard",
     imageFit: "contain",
   },
   {
